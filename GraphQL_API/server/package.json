@@ -1,5 +1,5 @@
 {
-  "name": "exit",
+  "name": "exiut",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -7,10 +7,10 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "express": "^5.1.0",
     "express-graphql": "^0.12.0",
     "graphql": "^16.11.0"
-  }
+  },
+  "description": ""
 }

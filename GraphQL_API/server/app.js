@@ -1,35 +1,41 @@
 const express = require('express')
 const { graphqlHTTP } = require('express-graphql')
-const { buildSchema } = require('graphql')
+const { GraphQLSchema, GraphQLObjectType } = require('graphql')
 const TaskType = require('./schema')
 
-const schema = buildSchema(`
-  type Query {
-    task: Task
+const RootQuery = new GraphQLObjectType({
+  name: 'RootQueryType',
+  fields: {
+    task: {
+      type: TaskType,
+      resolve () {
+        return {
+          id: '1',
+          title: 'Learn GraphQL',
+          weight: 5,
+          description: 'Master GraphQL fundamentals'
+        }
+      }
+    }
   }
-  ${TaskType.toString()}
-`)
+})
 
-const rootValue = {
-  task: () => ({
-    id: '1',
-    title: 'Example Task',
-    weight: 3,
-    description: 'Sample description'
-  })
-}
+const schema = new GraphQLSchema({
+  query: RootQuery
+})
 
 const app = express()
 
+// Configure GraphQL endpoint
 app.use(
   '/graphql',
   graphqlHTTP({
     schema,
-    rootValue,
     graphiql: true
   })
 )
 
+// Start server
 app.listen(4000, () => {
   console.log('Server running on port 4000')
 })
