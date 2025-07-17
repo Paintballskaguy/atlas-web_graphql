@@ -9,8 +9,6 @@ const {
 } = require('graphql')
 const { GraphQLSchema } = require('graphql/type')
 const lodash = require('lodash')
-const Project = require('../models/project')
-const Task = require('../models/task')
 
 const Mutation = new GraphQLObjectType({
   name: 'Mutation',

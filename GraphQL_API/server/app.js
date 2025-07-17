@@ -1,13 +1,13 @@
 const express = require('express')
 const { graphqlHTTP } = require('express-graphql')
 const { buildSchema } = require('graphql')
-const TaskType = require('./schema')
-
+const TaskType = require('./schema/schema')
+console.log(` ${TaskType.toString()}`)
 const schema = buildSchema(`
   type Query {
     task: Task
   }
-  ${TaskType.toString()}
+  ${TaskType}
 `)
 
 const rootValue = {
