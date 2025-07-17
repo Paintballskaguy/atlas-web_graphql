@@ -1,28 +1,35 @@
-#!/usr/bin/node
 const express = require('express')
 const { graphqlHTTP } = require('express-graphql')
-const schema = require('./schema/schema')
-const mongoose = require('mongoose')
-const { MongoClient, ServerApiVersion } = require('mongodb')
+const { buildSchema } = require('graphql')
+const TaskType = require('./schema')
+
+const schema = buildSchema(`
+  type Query {
+    task: Task
+  }
+  ${TaskType.toString()}
+`)
+
+const rootValue = {
+  task: () => ({
+    id: '1',
+    title: 'Example Task',
+    weight: 3,
+    description: 'Sample description'
+  })
+}
 
 const app = express()
-
-const uri =
-  'mongodb+srv://user-42a:sc5xXMRjCb6k3zJCx3Rd@cluster0.wajln82.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-
-mongoose.connect(uri)
-
-mongoose.connection.once('open', () => {
-  console.log('connected to database')
-})
 
 app.use(
   '/graphql',
   graphqlHTTP({
-    schema: schema,
+    schema,
+    rootValue,
     graphiql: true
   })
 )
+
 app.listen(4000, () => {
-  console.log('now listening for request on port 4000')
+  console.log('Server running on port 4000')
 })
