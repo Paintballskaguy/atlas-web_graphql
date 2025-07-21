@@ -1,0 +1,12 @@
+mutation {
+  addProject(
+    title: "Advanced CSS",
+    weight: 2,
+    description: "Learn advanced CSS techniques"
+  ) {
+    id
+    title
+    weight
+    description
+  }
+}

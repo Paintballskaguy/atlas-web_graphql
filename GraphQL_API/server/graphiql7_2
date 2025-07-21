@@ -1,0 +1,17 @@
+mutation {
+  addTask(
+    title: "CSS Grid Layout",
+    weight: 1,
+    description: "Implement a layout using CSS Grid",
+    projectId: "60f7b1a5e6b9a80015f8d7e1"  # Use actual project ID
+  ) {
+    id
+    title
+    weight
+    description
+    project {
+      id
+      title
+    }
+  }
+}
