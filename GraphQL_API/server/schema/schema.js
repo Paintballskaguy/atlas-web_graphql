@@ -8,7 +8,12 @@ const {
   GraphQLNonNull
 } = require('graphql')
 const { GraphQLSchema } = require('graphql/type')
-const _ = require('lodash') // Use conventional underscore alias for Lodash
+const _ = require('lodash')
+const mongoose = require('mongoose')
+
+// Safely get Mongoose models
+const Task = mongoose.models?.Task;
+const Project = mongoose.models?.Project;
 
 // Dummy tasks data
 const tasks = [
@@ -17,14 +22,14 @@ const tasks = [
     title: 'Create your first webpage',
     weight: 1,
     description: 'Create your first HTML file 0-index.html with: -Add the doctype on the first line (without any comment) -After the doctype, open and close a html tag Open your file in your browser (the page should be blank)',
-    projectId: '1' // Added projectId to maintain relationship
+    projectId: '1'
   },
   {
     id: '2',
     title: 'Structure your webpage',
     weight: 1,
     description: 'Copy the content of 0-index.html into 1-index.html Create the head and body sections inside the html tag, create the head and body tags (empty) in this order',
-    projectId: '1' // Added projectId to maintain relationship
+    projectId: '1'
   }
 ];
 
@@ -38,6 +43,7 @@ const projects = [
   }
 ];
 
+// Unified TaskType definition
 const TaskType = new GraphQLObjectType({
   name: 'Task',
   fields: () => ({
@@ -47,14 +53,18 @@ const TaskType = new GraphQLObjectType({
     description: { type: GraphQLString },
     project: {
       type: ProjectType,
-      resolve (parent, args) {
-        // Use Lodash to find project by ID
-        return _.find(projects, { id: parent.projectId });
+      resolve(parent) {
+        // Use database if available, otherwise dummy data
+        if (Project) {
+          return Project.findById(parent.projectId)
+        }
+        return _.find(projects, { id: parent.projectId })
       }
     }
   })
 });
 
+// Unified ProjectType definition
 const ProjectType = new GraphQLObjectType({
   name: 'Project',
   fields: () => ({
@@ -64,55 +74,67 @@ const ProjectType = new GraphQLObjectType({
     description: { type: GraphQLString },
     tasks: {
       type: new GraphQLList(TaskType),
-      resolve (parent, args) {
-        // Use Lodash to filter tasks by projectId
-        return _.filter(tasks, { projectId: parent.id });
+      resolve(parent) {
+        // Use database if available, otherwise dummy data
+        if (Task) {
+          return Task.find({ projectId: parent.id })
+        }
+        return _.filter(tasks, { projectId: parent.id })
       }
     }
   })
 });
 
+// Unified RootQuery definition
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
     task: {
       type: TaskType,
-      args: {
-        id: { type: GraphQLID }
-      },
-      resolve (parent, args) {
-        // Use Lodash to find task by ID in dummy data
-        return _.find(tasks, { id: args.id });
+      args: { id: { type: GraphQLID } },
+      resolve(parent, args) {
+        // Use database if available, otherwise dummy data
+        if (Task) {
+          return Task.findById(args.id)
+        }
+        return _.find(tasks, { id: args.id })
       }
     },
     project: {
       type: ProjectType,
-      args: {
-        id: { type: GraphQLID }
-      },
-      resolve (parent, args) {
-        // Use Lodash to find project by ID
-        return _.find(projects, { id: args.id });
+      args: { id: { type: GraphQLID } },
+      resolve(parent, args) {
+        // Use database if available, otherwise dummy data
+        if (Project) {
+          return Project.findById(args.id)
+        }
+        return _.find(projects, { id: args.id })
       }
     },
     tasks: {
       type: new GraphQLList(TaskType),
-      resolve () {
-        // Return all dummy tasks
-        return tasks;
+      resolve() {
+        // Use database if available, otherwise dummy data
+        if (Task) {
+          return Task.find({})
+        }
+        return tasks
       }
     },
     projects: {
       type: new GraphQLList(ProjectType),
-      resolve () {
-        // Return all dummy projects
-        return projects;
+      resolve() {
+        // Use database if available, otherwise dummy data
+        if (Project) {
+          return Project.find({})
+        }
+        return projects
       }
     }
   }
 });
 
-// Mutation remains unchanged but will not work with dummy data
+// Unified Mutation definition
 const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
@@ -123,8 +145,11 @@ const Mutation = new GraphQLObjectType({
         weight: { type: new GraphQLNonNull(GraphQLInt) },
         description: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve (parent, args) {
-        // This will not work with dummy data
+      resolve(parent, args) {
+        // Only works with database
+        if (!Project) {
+          throw new Error('Database not available')
+        }
         const project = new Project({
           title: args.title,
           weight: args.weight,
@@ -141,8 +166,11 @@ const Mutation = new GraphQLObjectType({
         description: { type: new GraphQLNonNull(GraphQLString) },
         projectId: { type: new GraphQLNonNull(GraphQLID) }
       },
-      resolve (parent, args) {
-        // This will not work with dummy data
+      resolve(parent, args) {
+        // Only works with database
+        if (!Task) {
+          throw new Error('Database not available')
+        }
         const task = new Task({
           title: args.title,
           weight: args.weight,
